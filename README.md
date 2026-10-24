@@ -4,7 +4,7 @@ Lexxy defines its custom elements with `setTimeout(defineElements, 0)` at the en
 
 An app can't avoid it on its side. `blocking="render"` on its entry module (Chrome, Edge, Safari 18.2+) holds the first paint until that module and everything it imports have run. Lexxy's timer comes after that hold has ended.
 
-The fix proposed in [idanci/lexxy#1](https://github.com/idanci/lexxy/pull/1) defines the elements with `queueMicrotask(defineElements)` instead: still after a `configure()` call that follows the import, and before the browser can paint.
+The fix proposed in [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314) defines the elements with `queueMicrotask(defineElements)` instead: still after a `configure()` call that follows the import, and before the browser can paint. Its second commit keeps a later `configure()` call working, from another module script or after an await: until the next task, `configure()` rebuilds the editors that already started. `patched.html` loads Lexxy with both commits, from [idanci/lexxy#2](https://github.com/idanci/lexxy/pull/2).
 
 ## Run it
 
@@ -37,13 +37,13 @@ Recorded from the screen in Chrome 155 on macOS, CPU slowed 6×, 20 reloads of e
 | `current.html` | 20 of 20, for 1–2 frames each |
 | `patched.html` | 0 of 20 |
 
-Recordings are in the PR.
+Recordings are in the PR. They were made with the first commit alone. The second one does nothing on these pages, because they call `configure()` before the elements are defined.
 
 ## Files
 
 - `current.html`, `patched.html`: the two pages.
 - `current/lexxy.js`: built from `basecamp/lexxy` main at `b384704c`.
-- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-in-microtask` at `6b609ae2`.
+- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-in-microtask-reconfigure` at `81ae9091`.
 - `lexxy*.css`: Lexxy's stylesheets, shared by both pages.
 - `bin/build`: rebuilds both `lexxy.js` files from source.
 

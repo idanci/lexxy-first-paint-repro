@@ -18166,6 +18166,8 @@ class LexicalEditorElement extends HTMLElement {
 
   #initializeEventDispatched = false
   #editorInitializedDispatched = false
+  #mountFrame
+  #defaultToolbar
   #listeners = new ListenerBin()
   #disposables = []
   #historyState = { undo: false, redo: false }
@@ -18219,7 +18221,7 @@ class LexicalEditorElement extends HTMLElement {
 
     this.toggleAttribute("connected", true);
 
-    requestAnimationFrame(() => {
+    this.#mountFrame = requestAnimationFrame(() => {
       this.#mountRoot();
       this.#handleAutofocus();
       this.#dispatchInitialize();
@@ -18235,6 +18237,12 @@ class LexicalEditorElement extends HTMLElement {
 
     this.#clearCachedValues();
     this.#reset(); // Prevent hangs with Safari when morphing
+  }
+
+  reconfigure() {
+    cancelAnimationFrame(this.#mountFrame);
+    this.#defaultToolbar?.remove();
+    this.#reconnect();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -18935,6 +18943,7 @@ class LexicalEditorElement extends HTMLElement {
     toolbar.setAttribute("data-attachments", this.supportsAttachments); // Drives toolbar CSS styles
     toolbar.configure(this.config.get("toolbar"));
     this.prepend(toolbar);
+    this.#defaultToolbar = toolbar;
     return toolbar
   }
 
@@ -21183,6 +21192,12 @@ function defineElements() {
   });
 }
 
+function reconfigureElements() {
+  for (const editor of document.querySelectorAll("lexxy-editor:defined")) {
+    editor.reconfigure();
+  }
+}
+
 function highlightCode(root = document) {
   const elements = root.querySelectorAll("pre[data-language]:not([data-highlighted])");
 
@@ -21456,12 +21471,22 @@ class NativeAdapter {
   }
 }
 
-const configure = Lexxy.configure;
+function configure(config) {
+  Lexxy.configure(config);
+  if (editorsFollowConfigure) {
+    reconfigureElements();
+  }
+}
 
 // Define the elements once the current call stack is done, so a configure() call right after the import still comes
 // first. A microtask rather than a timer: it runs before the browser can paint, so editors already on the page are
 // drawn upgraded instead of popping in a frame or two later.
 queueMicrotask(defineElements);
+
+// Until the next task, configure() rebuilds the editors that already started, so a call from a later module script or
+// after an await still reaches them, as it did when the elements were defined in that task.
+let editorsFollowConfigure = true;
+setTimeout(() => editorsFollowConfigure = false, 0);
 
 export { $createActionTextAttachmentNode, $createActionTextAttachmentUploadNode, $isActionTextAttachmentNode, $isCustomActionTextAttachmentNode, ActionTextAttachmentNode, ActionTextAttachmentUploadNode, CustomActionTextAttachmentNode, EditorSanitizer, LexxyExtension as Extension, HorizontalDividerNode, Lexical_prod as Lexical, NativeAdapter, REWRITE_HISTORY_COMMAND, configure, highlightCode, highlightElement };
 //# sourceMappingURL=lexxy.js.map

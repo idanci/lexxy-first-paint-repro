@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Rebuilds current/lexxy.js and patched/lexxy.js from Lexxy's source: basecamp/lexxy main, and the branch of
-# https://github.com/idanci/lexxy/pull/1. Needs git, node and yarn.
+# https://github.com/idanci/lexxy/pull/2. Needs git, node and yarn.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tmp=$(mktemp -d)
@@ -16,5 +16,5 @@ build() {
 }
 
 build basecamp/lexxy main current
-build idanci/lexxy define-elements-in-microtask patched
+build idanci/lexxy define-elements-in-microtask-reconfigure patched
 cp "$tmp/current/app/assets/stylesheets/"*.css .
