@@ -4,7 +4,7 @@ Lexxy defines its custom elements with `setTimeout(defineElements, 0)` at the en
 
 An app can't avoid it on its side. `blocking="render"` on its entry module (Chrome, Edge, Safari 18.2+) holds the first paint until that module and everything it imports have run. Lexxy's timer comes after that hold has ended.
 
-The fix proposed in [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314) defines the elements in a microtask when `configure()` was called right after the import: still after `configure()`, and before the browser can paint. Without such a call, Lexxy keeps its timer. `patched.html` loads Lexxy from [idanci/lexxy#4](https://github.com/idanci/lexxy/pull/4), the version of the fix being previewed.
+The fix proposed in [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314) defines the elements in a microtask when `configure()` was called right after the import: still after `configure()`, and before the browser can paint. Without such a call, Lexxy keeps its timer.
 
 ## Run it
 
@@ -43,7 +43,7 @@ Recordings are in the PR. They were made with an earlier version of the fix that
 
 - `current.html`, `patched.html`: the two pages.
 - `current/lexxy.js`: built from `basecamp/lexxy` main at `b384704c`.
-- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-when-configured` at `83908cf8`, the branch of idanci/lexxy#4.
+- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-in-microtask` at `2dad6c7c`, the branch of basecamp/lexxy#1314.
 - `lexxy*.css`: Lexxy's stylesheets, shared by both pages.
 - `bin/build`: rebuilds both `lexxy.js` files from source.
 
