@@ -4,7 +4,7 @@ Lexxy defines its custom elements with `setTimeout(defineElements, 0)` at the en
 
 An app can't avoid it on its side. `blocking="render"` on its entry module (Chrome, Edge, Safari 18.2+) holds the first paint until that module and everything it imports have run. Lexxy's timer comes after that hold has ended.
 
-The fix proposed in [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314) defines the elements with `queueMicrotask(defineElements)` instead: still after a `configure()` call that follows the import, and before the browser can paint. Its second commit keeps a later `configure()` call working, from another module script or after an await: until the next task, `configure()` rebuilds the editors that already started.
+The fix proposed in [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314) defines the elements in a microtask when `configure()` was called right after the import: still after `configure()`, and before the browser can paint. Without such a call, Lexxy keeps its timer. `patched.html` loads Lexxy from [idanci/lexxy#4](https://github.com/idanci/lexxy/pull/4), the version of the fix being previewed.
 
 ## Run it
 
@@ -37,13 +37,13 @@ Recorded from the screen in Chrome 155 on macOS, CPU slowed 6×, 20 reloads of e
 | `current.html` | 20 of 20, for 1–2 frames each |
 | `patched.html` | 0 of 20 |
 
-Recordings are in the PR. They were made with the first commit alone. The second one does nothing on these pages, because they call `configure()` before the elements are defined.
+Recordings are in the PR. They were made with an earlier version of the fix that always used a microtask. These pages call `configure()` right after the import, so they behave the same with this one.
 
 ## Files
 
 - `current.html`, `patched.html`: the two pages.
 - `current/lexxy.js`: built from `basecamp/lexxy` main at `b384704c`.
-- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-in-microtask` at `81ae9091`, the branch of basecamp/lexxy#1314.
+- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-when-configured` at `83908cf8`, the branch of idanci/lexxy#4.
 - `lexxy*.css`: Lexxy's stylesheets, shared by both pages.
 - `bin/build`: rebuilds both `lexxy.js` files from source.
 
