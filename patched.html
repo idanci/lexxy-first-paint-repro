@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lexxy patched</title>
+  <link rel="stylesheet" href="lexxy.css">
+  <script type="importmap">{ "imports": { "lexxy": "./patched/lexxy.js" } }</script>
+  <!-- The page isn't painted until this module has run (blocking="render", Chrome and Safari 18.2+). -->
+  <script type="module" blocking="render">
+    import * as Lexxy from "lexxy"
+    Lexxy.configure({ default: { attachments: false } })
+
+    // Microtasks still run before the browser can paint; a timer may run after it.
+    queueMicrotask(() => {
+      const defined = customElements.get("lexxy-editor") !== undefined
+      document.getElementById("result").textContent = defined
+        ? "lexxy-editor was defined before the browser could paint."
+        : "lexxy-editor was not defined yet when the browser could paint."
+    })
+  </script>
+</head>
+<body style="font: 16px system-ui; max-width: 40rem; margin: 2rem">
+  <p id="result"></p>
+  <lexxy-editor placeholder="Write something…"></lexxy-editor>
+</body>
+</html>

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Rebuilds current/lexxy.js and patched/lexxy.js from Lexxy's source: basecamp/lexxy main, and the branch of
+# https://github.com/idanci/lexxy/pull/1. Needs git, node and yarn.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+build() {
+  local repo=$1 ref=$2 out=$3
+  git clone --quiet --depth 1 --branch "$ref" "https://github.com/$repo.git" "$tmp/$out"
+  (cd "$tmp/$out" && yarn install --frozen-lockfile --silent && yarn --silent build)
+  mkdir -p "$out"
+  cp "$tmp/$out/app/assets/javascript/lexxy.js" "$out/lexxy.js"
+  echo "$out/lexxy.js built from $repo $ref at $(git -C "$tmp/$out" rev-parse --short HEAD)"
+}
+
+build basecamp/lexxy main current
+build idanci/lexxy define-elements-in-microtask patched
+cp "$tmp/current/app/assets/stylesheets/"*.css .
