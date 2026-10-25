@@ -1,10 +1,10 @@
 # Lexxy editors painted before they're defined
 
-Lexxy defines its custom elements with `setTimeout(defineElements, 0)` at the end of `src/index.js`. A timer runs in a later task, and the browser may paint between the task that ran the page's scripts and that one. A `<lexxy-editor>` that's already in the HTML can then be painted before it's defined: an empty box, without its toolbar or placeholder, for a frame or two, then the editor.
+Lexxy 1.0.1 and earlier define their custom elements with `setTimeout(defineElements, 0)` at the end of `src/index.js`. A timer runs in a later task, and the browser may paint between the task that ran the page's scripts and that one. A `<lexxy-editor>` that's already in the HTML can then be painted before it's defined: an empty box, without its toolbar or placeholder, for a frame or two, then the editor.
 
 An app can't avoid it on its side. `blocking="render"` on its entry module (Chrome, Edge, Safari 18.2+) holds the first paint until that module and everything it imports have run. Lexxy's timer comes after that hold has ended.
 
-The fix proposed in [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314) defines the elements in a microtask when `configure()` was called right after the import: still after `configure()`, and before the browser can paint. Without such a call, Lexxy keeps its timer.
+Since [basecamp/lexxy#1314](https://github.com/basecamp/lexxy/pull/1314), merged after v1.0.1, Lexxy defines the elements in a microtask when `configure()` was called right after the import. That still runs after `configure()`, and before the browser can paint. Without such a call, Lexxy keeps its timer.
 
 ## Run it
 
@@ -14,8 +14,8 @@ python3 -m http.server 8000
 
 Open both in Chrome, Edge or Safari 18.2+:
 
-- http://localhost:8000/current.html: Lexxy from `basecamp/lexxy` main
-- http://localhost:8000/patched.html: Lexxy from the PR
+- http://localhost:8000/current.html: Lexxy from `basecamp/lexxy` main just before the PR was merged
+- http://localhost:8000/patched.html: Lexxy from the commit that merged it
 
 The two pages are the same except for which `lexxy.js` the import map loads. Each loads Lexxy from a render-blocking module, calls `configure()`, and has one editor in its HTML.
 
@@ -42,8 +42,8 @@ Recordings are in the PR. They were made with an earlier version of the fix that
 ## Files
 
 - `current.html`, `patched.html`: the two pages.
-- `current/lexxy.js`: built from `basecamp/lexxy` main at `b384704c`.
-- `patched/lexxy.js`: built from `idanci/lexxy` `define-elements-in-microtask` at `2dad6c7c`, the branch of basecamp/lexxy#1314.
+- `current/lexxy.js`: built from `basecamp/lexxy` main at `14bfbaca`, just before basecamp/lexxy#1314 was merged.
+- `patched/lexxy.js`: built from `1ef9fa20`, the commit that merged it. The two differ only in the fix.
 - `lexxy*.css`: Lexxy's stylesheets, shared by both pages.
 - `bin/build`: rebuilds both `lexxy.js` files from source.
 

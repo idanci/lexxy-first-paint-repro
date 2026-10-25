@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
-# Rebuilds current/lexxy.js and patched/lexxy.js from Lexxy's source: basecamp/lexxy main, and the branch of
-# https://github.com/basecamp/lexxy/pull/1314. Needs git, node and yarn.
+# Rebuilds current/lexxy.js and patched/lexxy.js from Lexxy's source: basecamp/lexxy main just before and just after
+# https://github.com/basecamp/lexxy/pull/1314 was merged. Needs git, node and yarn.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
 build() {
-  local repo=$1 ref=$2 out=$3
-  git clone --quiet --depth 1 --branch "$ref" "https://github.com/$repo.git" "$tmp/$out"
+  local sha=$1 out=$2
+  git init --quiet "$tmp/$out"
+  git -C "$tmp/$out" fetch --quiet --depth 1 https://github.com/basecamp/lexxy.git "$sha"
+  git -C "$tmp/$out" checkout --quiet FETCH_HEAD
   (cd "$tmp/$out" && yarn install --frozen-lockfile --silent && yarn --silent build)
   mkdir -p "$out"
   cp "$tmp/$out/app/assets/javascript/lexxy.js" "$out/lexxy.js"
-  echo "$out/lexxy.js built from $repo $ref at $(git -C "$tmp/$out" rev-parse --short HEAD)"
+  echo "$out/lexxy.js built from basecamp/lexxy at ${sha:0:8}"
 }
 
-build basecamp/lexxy main current
-build idanci/lexxy define-elements-in-microtask patched
+build 14bfbaca04d6161420b3273e19e052d8a85dd12a current # main before #1314
+build 1ef9fa20844975e12b6c9531a9aa7011d64806d0 patched # the merge of #1314
 cp "$tmp/current/app/assets/stylesheets/"*.css .
